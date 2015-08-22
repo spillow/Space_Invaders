@@ -14,7 +14,15 @@
             this.engine  = new GameEngine(screen, gameSize)
             this.score   = 0
 
-            // TODO: Initialize game!
+            var bodies = createInvaders(this).concat(
+                [new Player(this, gameSize)])
+
+            for (var i = 0; i < bodies.length; i++)
+            {
+                this.engine.addObject(bodies[i])
+            }
+
+            this.engine.start()
         }
 
         invadersBelow(invader)
@@ -28,7 +36,9 @@
 
         incScore()
         {
-            // TODO
+            this.score += 20
+            var score = document.getElementById("score")
+            score.innerHTML = "Score: " + this.score
         }
     }
 
@@ -45,17 +55,37 @@
 
         draw(screen)
         {
-            // TODO
+            drawObject(this, screen, "player.png")
         }
 
         collide(engine, other)
         {
-            // TODO
+            playSound("killed.wav")
+            engine.delObject(this)
+            var gameover = document.getElementById("gameover")
+            gameover.innerHTML = "Game Over!"
         }
 
         update(engine)
         {
-            // TODO
+            if (this.keyboarder.isDown(this.keyboarder.KEYS.LEFT))
+            {
+                this.center.x -= 2;
+            }
+            else if (this.keyboarder.isDown(this.keyboarder.KEYS.RIGHT))
+            {
+                this.center.x += 2;
+            }
+
+            if (this.keyboarder.isDown(this.keyboarder.KEYS.SPACE))
+            {
+                var bullet = new Bullet({ x: this.center.x,
+                                          y: this.center.y - this.size.y / 2 },
+                                        { x: 0, y: -6 });
+                engine.addObject(bullet);
+                playSound("shoot.wav")
+                this.keyboarder.stopKey(this.keyboarder.KEYS.SPACE)
+            }
         }
     }
 
@@ -71,17 +101,18 @@
 
         collide(engine, other)
         {
-            // TODO
+            engine.delObject(this)
         }
 
         update(engine)
         {
-            // TODO
+            this.center.x += this.velocity.x;
+            this.center.y += this.velocity.y;
         }
 
         draw(screen)
         {
-            // TODO
+            drawRect(screen, this)
         }
     }
 
@@ -100,17 +131,45 @@
 
         collide(engine, other)
         {
-            // TODO
+            engine.delObject(this)
+            playSound("invaderkilled.wav")
+            this.game.incScore()
         }
 
         draw(screen)
         {
-            // TODO
+            drawObject(this, screen, "enemy.svg")
         }
 
         update(engine)
         {
-            // TODO
+            this.count++
+            if (this.count < 30)
+            {
+                return
+            }
+
+            this.count = 0
+
+            if (this.patrolX < 0 || this.patrolX > 40)
+            {
+                this.speedX = -this.speedX;
+
+                // roll down the screen
+                this.center.y += 10
+            }
+
+            this.center.x += this.speedX;
+            this.patrolX += this.speedX;
+
+            if (Math.random() > 0.50 && !this.game.invadersBelow(this))
+            {
+                var bullet = new Bullet({
+                    x: this.center.x,
+                    y: this.center.y + this.size.y / 2 },
+                    { x: Math.random() / 5.0 - 0.1, y: +2 });
+                engine.addObject(bullet);
+            }
         }
     }
 
@@ -129,12 +188,16 @@
 
     var drawRect = function(screen, body)
     {
-        // TODO
+        screen.fillStyle = "white"
+        screen.fillRect(body.center.x - body.size.x / 2,
+                        body.center.y - body.size.y / 2,
+                        body.size.x, body.size.y);
     };
 
     var playSound = function(url)
     {
-        // TODO
+        var sound = new Audio(url)
+        sound.play()
     };
 
     var Keyboarder = function()
@@ -169,11 +232,16 @@
 
     var drawObject = function(obj, screen, url)
     {
-        // TODO
+        var img = new Image()
+        img.src = url
+        screen.drawImage(img,
+            obj.center.x - obj.size.x / 2,
+            obj.center.y - obj.size.y / 2,
+            obj.size.x, obj.size.y);
     }
 
     window.onload = function()
     {
-        // TODO
+        new Game("screen");
     };
 })();
