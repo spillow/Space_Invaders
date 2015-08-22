@@ -8,12 +8,14 @@
     {
         constructor(canvasId)
         {
-            var canvas = document.getElementById(canvasId)
-            var screen = canvas.getContext('2d')
+            var canvas   = document.getElementById(canvasId)
+            var screen   = canvas.getContext('2d')
             var gameSize = { x: canvas.width, y: canvas.height }
-            this.engine = new GameEngine(screen, gameSize)
+            this.engine  = new GameEngine(screen, gameSize)
+            this.score   = 0
 
-            var bodies = createInvaders(this).concat([new Player(this, gameSize)])
+            var bodies = createInvaders(this).concat(
+                [new Player(this, gameSize)])
 
             for (var i = 0; i < bodies.length; i++)
             {
@@ -31,6 +33,13 @@
                     b.center.x - invader.center.x < invader.size.x;
             }).length > 0;
         }
+
+        incScore()
+        {
+            this.score += 20
+            var score = document.getElementById("score")
+            score.innerHTML = "Score: " + this.score
+        }
     }
 
     class Player extends Object
@@ -40,23 +49,21 @@
             super()
             this.game = game;
             this.size = { x: 15, y: 15 };
-            this.center = { x: gameSize.x / 2, y: gameSize.y - this.size.x };
+            this.center = { x: gameSize.x / 2, y: gameSize.y - this.size.y };
             this.keyboarder = new Keyboarder();
         };
 
         draw(screen)
         {
-            //screen.font = "30px Arial";
-            //screen.fillText("Hello World",250,50);
-
             drawObject(this, screen, "player.png")
-            //drawRect(screen, this)
         }
 
         collide(engine, other)
         {
             playSound("killed.wav")
             engine.delObject(this)
+            var gameover = document.getElementById("gameover")
+            gameover.innerHTML = "Game Over!"
         }
 
         update(engine)
@@ -117,7 +124,7 @@
             this.size = { x: 15, y: 15 };
             this.center = center;
             this.patrolX = 0;
-            this.speedX = 0.3 * 60;
+            this.speedX = 0.3 * 30;
             this.game = game;
             this.count = 0;
         }
@@ -126,6 +133,7 @@
         {
             engine.delObject(this)
             playSound("invaderkilled.wav")
+            this.game.incScore()
         }
 
         draw(screen)
@@ -136,19 +144,19 @@
         update(engine)
         {
             this.count++
-            if (this.count < 60)
+            if (this.count < 30)
             {
                 return
             }
-
-            // roll down the screen
-            this.center.y += 10
 
             this.count = 0
 
             if (this.patrolX < 0 || this.patrolX > 40)
             {
                 this.speedX = -this.speedX;
+
+                // roll down the screen
+                this.center.y += 10
             }
 
             this.center.x += this.speedX;
@@ -156,9 +164,10 @@
 
             if (Math.random() > 0.50 && !this.game.invadersBelow(this))
             {
-                var bullet = new Bullet({ x: this.center.x,
+                var bullet = new Bullet({
+                    x: this.center.x,
                     y: this.center.y + this.size.y / 2 },
-                    { x: Math.random() - 0.5, y: +2 });
+                    { x: Math.random() / 5.0 - 0.1, y: +2 });
                 engine.addObject(bullet);
             }
         }
@@ -167,10 +176,10 @@
     var createInvaders = function(game)
     {
         var invaders = [];
-        for (var i = 0; i < 24; i++)
+        for (var i = 0; i < 40; i++)
         {
             var x = 30 + (i % 8) * 30;
-            var y = 30 + (i % 3) * 30;
+            var y = 30 + (i % 5) * 30;
             invaders.push(new Invader(game, { x: x, y: y }));
         }
 
@@ -179,6 +188,7 @@
 
     var drawRect = function(screen, body)
     {
+        screen.fillStyle = "white"
         screen.fillRect(body.center.x - body.size.x / 2,
                         body.center.y - body.size.y / 2,
                         body.size.x, body.size.y);

@@ -75,7 +75,6 @@ class GameEngine
                 if (colliding(this.objects[i], this.objects[j]))
                 {
                     this.objects[i].collide(this, this.objects[j])
-                    this.objects[j].collide(this, this.objects[i])
                 }
             }
         }
@@ -86,7 +85,9 @@ class GameEngine
 
     draw()
     {
-        this.screen.clearRect(0, 0, this.gameSize.x, this.gameSize.y);
+        //this.screen.clearRect(0, 0, this.gameSize.x, this.gameSize.y);
+        this.screen.fillStyle = "black"
+        this.screen.fillRect(0, 0, this.gameSize.x, this.gameSize.y);
         for (var i = 0; i < this.objects.length; i++)
         {
             this.objects[i].draw(this.screen);
